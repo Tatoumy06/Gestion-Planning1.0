@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier le Rendez-vous</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        form { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;}
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Important pour que padding et border ne modifient pas la largeur totale */
+        }
+        textarea { resize: vertical; min-height: 80px; }
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover { background-color: #0056b3; }
+        .form-group { margin-bottom: 15px; }
+        .back-link { display: block; margin-top: 20px; text-align: center; }
+        .back-link a { text-decoration: none; color: #007bff; }
+        .back-link a:hover { text-decoration: underline; }
+
+        /* Pour afficher les messages flash */
+        .flash-messages { list-style-type: none; padding: 0; margin-bottom: 15px; }
+        .flash-messages li { padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .flash-messages .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .font-controls {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .font-controls button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Modifier le Rendez-vous</h1>
+    <div class="font-controls">
+        <span>Taille police:</span>
+        <button id="decreaseFontBtnEd">A-</button>
+        <button id="resetFontBtnEd">A</button>
+        <button id="increaseFontBtnEd">A+</button>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('edit_appointment', appointment_id=appointment.id) }}">
+        <div class="form-group">
+            <label for="customer_name">Nom du Client:</label>
+            <input type="text" id="customer_name" name="customer_name" value="{{ appointment.customer_name or '' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="vehicle_plate">Plaque d'Immatriculation:</label>
+            <input type="text" id="vehicle_plate" name="vehicle_plate" value="{{ appointment.vehicle_plate or '' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="service_description">Description du Service:</label>
+            <textarea id="service_description" name="service_description" required>{{ appointment.service_description or '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="start_time">Date et Heure du Rendez-vous:</label>
+            <input type="datetime-local" id="start_time" name="start_time" value="{{ start_time_str or '' }}" required>
+            <small>Format: YYYY-MM-DDTHH:MM</small>
+        </div>
+        <div class="form-group">
+            <label for="technician">Technicien Assigné:</label>
+            <input type="text" id="technician" name="technician" value="{{ appointment.technician or '' }}" required>
+        </div>
+        <button type="submit">Mettre à jour le Rendez-vous</button>
+    </form>
+
+    <div class="back-link">
+        <a href="{{ url_for('index') }}">Retour au Planning</a>
+    </div>
+
+<script>
+    const FONT_SIZE_KEY_ED = 'userEditFormFontSize'; // Clé différente pour potentiellement des tailles différentes par page
+    const DEFAULT_FONT_SIZE_ED = 16;
+    const FONT_STEP_ED = 2;
+
+    function applyFontSizeEd(size) {
+        document.body.style.fontSize = size + 'px';
+    }
+
+    function loadFontSizeEd() {
+        let currentSize = localStorage.getItem(FONT_SIZE_KEY_ED);
+        if (!currentSize) {
+            currentSize = DEFAULT_FONT_SIZE_ED;
+        }
+        applyFontSizeEd(parseFloat(currentSize));
+    }
+
+    function changeFontSizeEd(delta) {
+        let currentSize = parseFloat(localStorage.getItem(FONT_SIZE_KEY_ED) || DEFAULT_FONT_SIZE_ED);
+        let newSize = currentSize + delta;
+        if (newSize < 10) newSize = 10;
+        if (newSize > 28) newSize = 28;
+        localStorage.setItem(FONT_SIZE_KEY_ED, newSize);
+        applyFontSizeEd(newSize);
+    }
+
+    function resetFontSizeEd() {
+        localStorage.setItem(FONT_SIZE_KEY_ED, DEFAULT_FONT_SIZE_ED);
+        applyFontSizeEd(DEFAULT_FONT_SIZE_ED);
+    }
+    document.addEventListener('DOMContentLoaded', loadFontSizeEd);
+    document.getElementById('decreaseFontBtnEd').addEventListener('click', () => changeFontSizeEd(-FONT_STEP_ED));
+    document.getElementById('resetFontBtnEd').addEventListener('click', resetFontSizeEd);
+    document.getElementById('increaseFontBtnEd').addEventListener('click', () => changeFontSizeEd(FONT_STEP_ED));
+</script>
+</body>
+</html>
