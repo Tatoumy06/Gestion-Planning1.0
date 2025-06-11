@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning des Rendez-vous</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .action-links a { margin-right: 10px; text-decoration: none; color: #007bff; }
+        .action-links a:hover { text-decoration: underline; }
+        .add-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .add-button:hover { background-color: #218838; }
+        .font-controls {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .font-controls button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Planning des Rendez-vous</h1>
+
+    <div class="font-controls">
+        <span>Taille police:</span>
+        <button id="decreaseFontBtnPl">A-</button>
+        <button id="resetFontBtnPl">A</button>
+        <button id="increaseFontBtnPl">A+</button>
+    </div>
+
+    <a href="{{ url_for('new_appointment') }}" class="add-button">Ajouter un Rendez-vous</a>
+
+    {% if appointments %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Technicien</th>
+                    <th>Client</th>
+                    <th>Véhicule (Plaque)</th>
+                    <th>Travaux</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                                        
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr>
+                    <td>{{ appt.technician or 'Non assigné' }}</td>
+                    <td>{{ appt.customer_name }}</td> <!-- Corresponds to "Client" -->
+                    <td>{{ appt.vehicle_plate }}</td> <!-- Corresponds to "Véhicule (Plaque)" -->
+                    <td>{{ appt.service_description }}</td> <!-- Corresponds to "Travaux" -->
+                    <td>{{ appt.start_time.strftime('%d/%m/%Y %H:%M') }}</td> <!-- Corresponds to "Date" -->
+                    <td>{{ appt.status }}</td> <!-- Corresponds to "Statut" -->
+                    <td class="action-links">
+                        <a href="{{ url_for('edit_appointment', appointment_id=appt.id) }}">Modifier</a>
+                        {# Vous pourrez ajouter un lien Supprimer ici plus tard si besoin #}
+                        {# <a href="#">Supprimer</a> #}
+                    </td>
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aucun rendez-vous planifié pour le moment.</p>
+    {% endif %}
+
+<script>
+    const FONT_SIZE_KEY_PL = 'userPlanningFontSize';
+    const DEFAULT_FONT_SIZE_PL = 16; // Taille par défaut en pixels
+    const FONT_STEP_PL = 2; // Incrément/décrément en pixels
+
+    function applyFontSizePl(size) {
+        document.body.style.fontSize = size + 'px';
+    }
+
+    function loadFontSizePl() {
+        let currentSize = localStorage.getItem(FONT_SIZE_KEY_PL);
+        if (!currentSize) {
+            currentSize = DEFAULT_FONT_SIZE_PL;
+        }
+        applyFontSizePl(parseFloat(currentSize));
+    }
+
+    function changeFontSizePl(delta) {
+        let currentSize = parseFloat(localStorage.getItem(FONT_SIZE_KEY_PL) || DEFAULT_FONT_SIZE_PL);
+        let newSize = currentSize + delta;
+        if (newSize < 10) newSize = 10; // Taille minimale
+        if (newSize > 28) newSize = 28; // Taille maximale
+        localStorage.setItem(FONT_SIZE_KEY_PL, newSize);
+        applyFontSizePl(newSize);
+    }
+
+    function resetFontSizePl() {
+        localStorage.setItem(FONT_SIZE_KEY_PL, DEFAULT_FONT_SIZE_PL);
+        applyFontSizePl(DEFAULT_FONT_SIZE_PL);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFontSizePl);
+    document.getElementById('decreaseFontBtnPl').addEventListener('click', () => changeFontSizePl(-FONT_STEP_PL));
+    document.getElementById('resetFontBtnPl').addEventListener('click', resetFontSizePl);
+    document.getElementById('increaseFontBtnPl').addEventListener('click', () => changeFontSizePl(FONT_STEP_PL));
+</script>
+</body>
+</html>
